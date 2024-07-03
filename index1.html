@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://thumbs.dreamstime.com/b/banner-raw-uncooked-ingredients-cooking-pasta-background-food-healthy-eating-concept-186934703.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            color: #333;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 80px);
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #320901;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #591902;
+        }
+
+        .ingredients-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .ingredient-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f9f9f9;
+            margin: 5px 0;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .ingredient-item button {
+            background-color: #d9534f;
+            border: none;
+            padding: 6px 12px;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .ingredient-item button:hover {
+            background-color: #c9302c;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .recipe-item {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+
+        .recipe-item h2 {
+            color: #333;
+        }
+
+        .recipe-item p {
+            color: #666;
+        }
+
+        .recipe-actions {
+            margin-top: 10px;
+        }
+
+        .recipe-actions button {
+            margin-right: 10px;
+        }
+
+        .share-link {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+            text-align: left;
+        }
+
+        .share-link input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .saved-recipes {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .saved-recipe-item {
+            margin-bottom: 10px;
+        }
+
+        .saved-recipe-item h3 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .saved-recipe-item p {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Recipe Generator</h1>
+        <input type="text" id="ingredient-input" placeholder="Enter ingredient">
+        <button onclick="addIngredient()">Add Ingredient</button>
+        <button onclick="toggleIngredients()">Show/Hide Ingredients</button>
+        <div class="ingredients-list" id="ingredients-list" style="display: none;">
+            <!-- Ingredients will be displayed here -->
+        </div>
+        <button onclick="generateRecipe()">Generate Recipe</button>
+        <div class="recipe-list" id="recipe-list"></div>
+        <div class="share-link" id="share-link" style="display: none;">
+            <input type="text" id="recipe-link" readonly>
+        </div>
+        <div class="saved-recipes" id="saved-recipes">
+            <!-- Saved recipes will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        let ingredients = [];
+        let ingredientsVisible = false;
+        let savedRecipes = [];
+
+        function addIngredient() {
+            const input = document.getElementById('ingredient-input');
+            const ingredient = input.value.trim();
+            if (ingredient) {
+                ingredients.push(ingredient);
+                displayIngredients();
+                input.value = '';
+            }
+        }
+
+        function removeIngredient(index) {
+            ingredients.splice(index, 1);
+            displayIngredients();
+        }
+
+        function displayIngredients() {
+            const ingredientsList = document.getElementById('ingredients-list');
+            ingredientsList.innerHTML = '';
+            ingredients.forEach((ingredient, index) => {
+                ingredientsList.innerHTML += `
+                    <div class="ingredient-item">
+                        <span>${ingredient}</span>
+                        <button onclick="removeIngredient(${index})">Remove</button>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleIngredients() {
+            const ingredientsList = document.getElementById('ingredients-list');
+            ingredientsVisible = !ingredientsVisible;
+            ingredientsList.style.display = ingredientsVisible ? 'block' : 'none';
+        }
+
+        async function generateRecipe() {
+            if (ingredients.length === 0) {
+                alert('Please add some ingredients!');
+                return;
+            }
+
+            const resultDiv = document.getElementById('recipe-list');
+            resultDiv.innerHTML = '<div class="loading-spinner"></div>';
+
+            const response = await fetch('/api/get-recipe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ingredients })
+            });
+
+            const result = await response.json();
+
+            resultDiv.innerHTML = "";
+
+            if (result.recipes && result.recipes.length > 0) {
+                result.recipes.forEach(recipe => {
+                    resultDiv.innerHTML += `
+                        <div class="recipe-item">
+                            <h2>${recipe.name}</h2>
+                            <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
+                            <p><strong>Steps:</strong> ${recipe.steps.join('. ')}</p>
+                            <div class="recipe-actions">
+                                <button onclick="saveRecipe('${recipe.name}', '${recipe.ingredients.join(', ')}', '${recipe.steps.join('. ')}')">Save</button>
+                                <button onclick="downloadRecipe('${recipe.name}', '${recipe.ingredients.join(', ')}', '${recipe.steps.join('. ')}')">Download</button>
+                                <button onclick="shareRecipe('${recipe.name}', '${recipe.ingredients.join(', ')}', '${recipe.steps.join('. ')}')">Share</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // Display share link
+                const shareLink = document.getElementById('share-link');
+                const recipeLinkInput = document.getElementById('recipe-link');
+                const currentUrl = window.location.href.split('?')[0]; // Assuming no query parameters
+                const recipeId = generateUniqueId(); // Replace with actual unique ID generation
+                const recipeUrl = `${currentUrl}?recipeId=${recipeId}`;
+                recipeLinkInput.value = recipeUrl;
+                shareLink.style.display = 'block';
+            } else {
+                resultDiv.innerHTML = "<p>No matching recipes found with the given ingredients.</p>";
+            }
+        }
+
+        function generateUniqueId() {
+            return Math.random().toString(36).substr(2, 9);
+        }
+
+        function saveRecipe(name, ingredients, steps) {
+            const recipe = { name, ingredients, steps };
+            savedRecipes.push(recipe);
+            displaySavedRecipes();
+            // Store in localStorage
+            localStorage.setItem('savedRecipes', JSON.stringify(savedRecipes));
+        }
+
+        function displaySavedRecipes() {
+            const savedRecipesDiv = document.getElementById('saved-recipes');
+            savedRecipesDiv.innerHTML = '<h2>Saved Recipes</h2>';
+            savedRecipes.forEach((recipe, index) => {
+                savedRecipesDiv.innerHTML += `
+                    <div class="saved-recipe-item">
+                        <h3>${recipe.name}</h3>
+                        <p><strong>Ingredients:</strong> ${recipe.ingredients}</p>
+                        <p><strong>Steps:</strong> ${recipe.steps}</p>
+                    </div>
+                `;
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedRecipesFromStorage = localStorage.getItem('savedRecipes');
+            if (savedRecipesFromStorage) {
+                savedRecipes = JSON.parse(savedRecipesFromStorage);
+                displaySavedRecipes();
+            }
+        });
+
+        function downloadRecipe(name, ingredients, steps) {
+            const recipeText = `Recipe: ${name}\n\nIngredients: ${ingredients}\n\nSteps: ${steps}`;
+            const blob = new Blob([recipeText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${name}_recipe.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function shareRecipe(name, ingredients, steps) {
+            alert(`Share recipe: ${name}\n\nIngredients: ${ingredients}\n\nSteps: ${steps}`);
+        }
+    </script>
+</body>
+</html>
